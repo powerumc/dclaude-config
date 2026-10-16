@@ -51,28 +51,15 @@
 
 ## 설치
 
-1. direnv를 설치합니다.
+1. dclaude를 설치합니다. Orca처럼 셸 없이 `claude`를 실행하는 앱에서 쓰려면 `dclaude-code`도 함께 설치합니다.
 
-   ```bash
-   brew install direnv    # 또는 사용하는 패키지 관리자
-   ```
-
-2. direnv를 셸에 연결합니다. zsh, bash, fish, tcsh라면 `dclaude init`이 대신 추가할지 묻습니다. 직접 하려면 zsh에서는 이렇게 합니다.
-
-   ```bash
-   echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc   # 새 터미널부터 적용
-   eval "$(direnv hook zsh)"                      # 지금 터미널에 바로 적용
-   ```
-
-3. dclaude를 설치합니다. Orca처럼 셸 없이 `claude`를 실행하는 앱에서 쓰려면 `dclaude-code`도 함께 설치합니다.
-
-   Homebrew로 설치하면 두 명령이 함께 설치되고, direnv가 없으면 direnv도 설치됩니다.
+   Homebrew로 설치하면 두 명령과 direnv가 함께 설치됩니다.
 
    ```bash
    brew install powerumc/tap/dclaude
    ```
 
-   macOS와 Linux(amd64, arm64)용 바이너리는 [릴리스 페이지](https://github.com/powerumc/dclaude-config/releases)에 있습니다. Go로 설치하려면 이렇게 합니다.
+   Homebrew를 쓰지 않는다면 먼저 사용하는 패키지 관리자로 [direnv를 설치](https://direnv.net/docs/installation.html)합니다. 그다음 [릴리스 페이지](https://github.com/powerumc/dclaude-config/releases)에서 macOS·Linux(amd64, arm64)용 바이너리를 받거나 Go로 설치합니다.
 
    ```bash
    go install github.com/powerumc/dclaude-config/cmd/dclaude@latest
@@ -86,6 +73,13 @@
    cd dclaude-config
    go build -o bin/dclaude ./cmd/dclaude
    go build -o bin/dclaude-code ./cmd/dclaude-code
+   ```
+
+2. direnv를 셸에 연결합니다. zsh, bash, fish, tcsh라면 `dclaude init`이 대신 추가할지 묻습니다. 직접 하려면 zsh에서는 이렇게 합니다.
+
+   ```bash
+   echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc   # 새 터미널부터 적용
+   eval "$(direnv hook zsh)"                      # 지금 터미널에 바로 적용
    ```
 
 ## 빠른 시작

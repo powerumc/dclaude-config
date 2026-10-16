@@ -51,28 +51,15 @@ Per-directory Claude Code accounts. Run `dclaude init` in a directory, and Claud
 
 ## Installation
 
-1. Install direnv.
+1. Install dclaude, and `dclaude-code` for apps that start `claude` without a shell, such as Orca.
 
-   ```bash
-   brew install direnv    # or your package manager
-   ```
-
-2. Hook direnv into your shell. `dclaude init` offers to do this for zsh, bash, fish and tcsh. To do it by hand, for zsh:
-
-   ```bash
-   echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc   # for every new terminal
-   eval "$(direnv hook zsh)"                      # for this terminal, right away
-   ```
-
-3. Install dclaude, and `dclaude-code` for apps that start `claude` without a shell, such as Orca.
-
-   With Homebrew, which installs both commands, and direnv if it is missing:
+   With Homebrew, which installs both commands and direnv:
 
    ```bash
    brew install powerumc/tap/dclaude
    ```
 
-   Prebuilt binaries for macOS and Linux (amd64, arm64) are on the [releases page](https://github.com/powerumc/dclaude-config/releases). With Go:
+   Without Homebrew, [install direnv](https://direnv.net/docs/installation.html) with your package manager first. Then take the prebuilt binaries for macOS and Linux (amd64, arm64) from the [releases page](https://github.com/powerumc/dclaude-config/releases), or install with Go:
 
    ```bash
    go install github.com/powerumc/dclaude-config/cmd/dclaude@latest
@@ -86,6 +73,13 @@ Per-directory Claude Code accounts. Run `dclaude init` in a directory, and Claud
    cd dclaude-config
    go build -o bin/dclaude ./cmd/dclaude
    go build -o bin/dclaude-code ./cmd/dclaude-code
+   ```
+
+2. Hook direnv into your shell. `dclaude init` offers to do this for zsh, bash, fish and tcsh. To do it by hand, for zsh:
+
+   ```bash
+   echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc   # for every new terminal
+   eval "$(direnv hook zsh)"                      # for this terminal, right away
    ```
 
 ## Quick start
