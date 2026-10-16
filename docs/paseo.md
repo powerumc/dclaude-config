@@ -14,8 +14,10 @@ The Paseo app has no screen for this, so edit `~/.paseo/config.json`.
 1. Find the full path of the `dclaude-code` executable.
 
    ```bash
-   command -v dclaude-code    # e.g. /Users/you/go/bin/dclaude-code
+   command -v dclaude-code    # e.g. /opt/homebrew/bin/dclaude-code
    ```
+
+   With Homebrew, use this path, not the one under `Cellar/dclaude/<version>/`, which changes on every upgrade.
 
 2. In `~/.paseo/config.json`, set the two `command` values below to that path. Keep everything else.
 
@@ -23,12 +25,12 @@ The Paseo app has no screen for this, so edit `~/.paseo/config.json`.
    {
      "agents": {
        "providers": {
-         "claude": { "command": ["/Users/you/go/bin/dclaude-code"] }
+         "claude": { "command": ["/opt/homebrew/bin/dclaude-code"] }
        }
      },
      "daemon": {
        "terminalProfiles": [
-         { "id": "claude", "name": "Claude Code", "command": "/Users/you/go/bin/dclaude-code", "args": ["{{{prompt}}}"], "icon": "claude" }
+         { "id": "claude", "name": "Claude Code", "command": "/opt/homebrew/bin/dclaude-code", "args": ["{{{prompt}}}"], "icon": "claude" }
        ]
      }
    }

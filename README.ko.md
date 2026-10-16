@@ -47,7 +47,7 @@
 - macOS 또는 Linux
 - `PATH`에 있는 [Claude Code](https://code.claude.com/docs) CLI(`claude`)
 - 셸에 연결된 [direnv](https://direnv.net). direnv가 없으면 `init`과 `login`은 멈춥니다.
-- 소스에서 빌드하려면 Go 1.26.2 이상
+- `go install`로 설치하거나 저장소를 받아서 빌드할 때만 Go 1.26.2 이상
 
 ## 설치
 
@@ -59,21 +59,25 @@
    brew install powerumc/tap/dclaude
    ```
 
-   Homebrew를 쓰지 않는다면 먼저 사용하는 패키지 관리자로 [direnv를 설치](https://direnv.net/docs/installation.html)합니다. 그다음 [릴리스 페이지](https://github.com/powerumc/dclaude-config/releases)에서 macOS·Linux(amd64, arm64)용 바이너리를 받거나 Go로 설치합니다.
+   Homebrew를 쓰지 않는다면 먼저 사용하는 패키지 관리자로 [direnv를 설치](https://direnv.net/docs/installation.html)한 뒤, 아래 방법 중 하나로 설치합니다.
 
-   ```bash
-   go install github.com/powerumc/dclaude-config/cmd/dclaude@latest
-   go install github.com/powerumc/dclaude-config/cmd/dclaude-code@latest
-   ```
+   - **미리 빌드한 바이너리**: [릴리스 페이지](https://github.com/powerumc/dclaude-config/releases)에 macOS·Linux(amd64, arm64)용이 있습니다. 시스템에 맞는 압축 파일을 풀고 두 명령을 `PATH`에 있는 디렉토리에 둡니다.
 
-   또는 저장소를 받아서 빌드합니다.
+     ```bash
+     tar xzf dclaude_*_darwin_arm64.tar.gz
+     mkdir -p ~/.local/bin && mv dclaude dclaude-code ~/.local/bin/
+     ```
 
-   ```bash
-   git clone https://github.com/powerumc/dclaude-config.git
-   cd dclaude-config
-   go build -o bin/dclaude ./cmd/dclaude
-   go build -o bin/dclaude-code ./cmd/dclaude-code
-   ```
+     macOS가 개발자를 확인할 수 없다며 실행을 막으면, 브라우저가 붙인 격리 속성을 지웁니다: `xattr -d com.apple.quarantine ~/.local/bin/dclaude ~/.local/bin/dclaude-code`
+
+   - **Go**:
+
+     ```bash
+     go install github.com/powerumc/dclaude-config/cmd/dclaude@latest
+     go install github.com/powerumc/dclaude-config/cmd/dclaude-code@latest
+     ```
+
+   저장소를 받아서 빌드하는 방법은 [개발](#개발)을 참고하세요.
 
 2. direnv를 셸에 연결합니다. zsh, bash, fish, tcsh라면 `dclaude init`이 대신 추가할지 묻습니다. 직접 하려면 zsh에서는 이렇게 합니다.
 
@@ -197,7 +201,7 @@ dclaude deinit [-y] [--force]
 
 | 옵션 | 효과 |
 | --- | --- |
-| `-y` | 확인을 건너뜁니다 |
+| `-y`, `--yes` | 확인을 건너뜁니다 |
 | `--force` | 이 프로필을 쓰는 Claude 세션이 실행 중이어도 진행합니다 |
 
 ### dclaude info
@@ -319,21 +323,28 @@ fi
 | `shell     not active yet` | `direnv allow`를 실행하세요. 다음 프롬프트부터 적용됩니다. |
 | `shell     not active: direnv is not hooked into …` | `info`가 아래에 보여 주는 두 줄을 실행하세요. 첫 줄은 새 터미널용, 둘째 줄은 지금 터미널용입니다. |
 | `shell     not active: this shell has not loaded direnv's hook` | 지금 셸이 hook을 추가하기 전에 시작됐습니다. 새 터미널을 열거나 `info`가 보여 주는 명령을 실행하세요. |
+| `.envrc    no dclaude block in …` 또는 `exports a different path` | `dclaude login`을 실행하면 구간을 다시 씁니다. |
 | `direnv    not installed` | direnv를 설치하세요([설치](#설치) 참고). |
+| `direnv    not allowed yet` 또는 `denied` | `direnv allow`를 실행하세요. `init`은 `.envrc`에 dclaude 구간만 있을 때만 직접 승인합니다. |
 | `direnv    … hides this profile` | `info`가 가리키는 `.envrc` 맨 위에 `source_up`을 추가하세요. |
 | `shared    not chosen yet` | `dclaude login`을 실행하세요. 한 번 묻습니다. |
 | `shared    … newer entries not linked yet` | `dclaude login`을 실행하면 링크합니다. |
 | `account   not logged in` | `dclaude login`을 실행하세요. |
 | `account   not checked: the directory moved` | 새 위치에서 `dclaude login`을 실행하세요. |
+| `usage     token expired` | 이 디렉토리에서 `claude`를 한 번 실행하면 토큰을 갱신합니다. |
 
 ## 개발
 
 ```bash
+git clone https://github.com/powerumc/dclaude-config.git
+cd dclaude-config
 go test ./...
 go vet ./...
-go build -ldflags "-X main.version=v0.1.0" -o bin/dclaude ./cmd/dclaude
+go build -o bin/dclaude ./cmd/dclaude
 go build -o bin/dclaude-code ./cmd/dclaude-code
 ```
+
+저장소에서 빌드하면 버전을 git에서 가져오므로, `dclaude version`은 `0.1.1-0.20261016065125-1acbeda08d48+dirty` 같은 값을 보여 줍니다. 릴리스 빌드는 `-ldflags "-X main.version=0.1.0"`으로 버전을 넣습니다.
 
 테스트는 가짜 `claude`, `direnv` 실행 파일과 메모리 안의 가짜 Keychain을 쓰므로 실제 계정을 건드리지 않습니다.
 
@@ -349,6 +360,23 @@ internal/keychain/  Claude Code의 Keychain 항목 이름 계산과 삭제
 internal/direnv/    direnv allow, status, 셸 hook
 internal/usage/     사용량 엔드포인트 조회와 표시
 ```
+
+### 릴리스
+
+`v*` 태그를 push하면 [릴리스 워크플로](.github/workflows/release.yml)가 시작됩니다.
+
+```bash
+git tag -a v0.2.0 -m v0.2.0
+git push origin v0.2.0
+```
+
+1. `go vet`과 `go test`를 실행합니다.
+2. GoReleaser가 두 명령을 macOS·Linux(amd64, arm64)용으로 빌드해 릴리스 페이지에 올립니다.
+3. [powerumc/homebrew-tap](https://github.com/powerumc/homebrew-tap)의 formula를 새 태그로 바꿉니다.
+
+- `v0.2.0-rc.1`처럼 `-`가 들어간 태그는 prerelease가 되고, formula는 바꾸지 않습니다.
+- 3단계에는 `powerumc/homebrew-tap`에 쓸 수 있는 토큰을 담은 `HOMEBREW_TAP_TOKEN` 저장소 secret이 필요합니다. 이 토큰은 만든 지 1년 뒤 만료됩니다. 만료되면 이 단계만 실패하니, 토큰을 다시 발급해 secret을 바꾸고 실패한 job을 다시 실행하세요.
+- `goreleaser release --snapshot --clean`을 실행하면 같은 압축 파일을 올리지 않고 `dist/`에만 만듭니다.
 
 ## 로드맵
 

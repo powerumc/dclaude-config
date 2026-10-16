@@ -47,7 +47,7 @@ Per-directory Claude Code accounts. Run `dclaude init` in a directory, and Claud
 - macOS or Linux
 - The [Claude Code](https://code.claude.com/docs) CLI (`claude`) on `PATH`
 - [direnv](https://direnv.net), hooked into your shell. `init` and `login` stop if direnv is missing.
-- Go 1.26.2 or later, to build from source
+- Go 1.26.2 or later, only to install with `go install` or build from a clone
 
 ## Installation
 
@@ -59,21 +59,25 @@ Per-directory Claude Code accounts. Run `dclaude init` in a directory, and Claud
    brew install powerumc/tap/dclaude
    ```
 
-   Without Homebrew, [install direnv](https://direnv.net/docs/installation.html) with your package manager first. Then take the prebuilt binaries for macOS and Linux (amd64, arm64) from the [releases page](https://github.com/powerumc/dclaude-config/releases), or install with Go:
+   Without Homebrew, [install direnv](https://direnv.net/docs/installation.html) with your package manager first, then use one of these:
 
-   ```bash
-   go install github.com/powerumc/dclaude-config/cmd/dclaude@latest
-   go install github.com/powerumc/dclaude-config/cmd/dclaude-code@latest
-   ```
+   - **Prebuilt binaries** for macOS and Linux (amd64, arm64), from the [releases page](https://github.com/powerumc/dclaude-config/releases). Unpack the archive for your system and put both commands in a directory on your `PATH`:
 
-   Or build them from a clone:
+     ```bash
+     tar xzf dclaude_*_darwin_arm64.tar.gz
+     mkdir -p ~/.local/bin && mv dclaude dclaude-code ~/.local/bin/
+     ```
 
-   ```bash
-   git clone https://github.com/powerumc/dclaude-config.git
-   cd dclaude-config
-   go build -o bin/dclaude ./cmd/dclaude
-   go build -o bin/dclaude-code ./cmd/dclaude-code
-   ```
+     If macOS refuses to open them because the developer cannot be verified, clear the quarantine flag the browser set: `xattr -d com.apple.quarantine ~/.local/bin/dclaude ~/.local/bin/dclaude-code`.
+
+   - **Go**:
+
+     ```bash
+     go install github.com/powerumc/dclaude-config/cmd/dclaude@latest
+     go install github.com/powerumc/dclaude-config/cmd/dclaude-code@latest
+     ```
+
+   To build from a clone, see [Development](#development).
 
 2. Hook direnv into your shell. `dclaude init` offers to do this for zsh, bash, fish and tcsh. To do it by hand, for zsh:
 
@@ -197,7 +201,7 @@ In a linked directory, it removes only that link and its `.envrc` block. The pro
 
 | Option | Effect |
 | --- | --- |
-| `-y` | Skips the confirmation |
+| `-y`, `--yes` | Skips the confirmation |
 | `--force` | Proceeds even while a Claude session is using the profile |
 
 ### dclaude info
@@ -319,21 +323,28 @@ With sharing on, each entry of `~/.claude` gets a symlink of the same name in th
 | `shell     not active yet` | Run `direnv allow`. direnv applies it at the next prompt. |
 | `shell     not active: direnv is not hooked into …` | Run the two commands `info` prints below it: the first hooks new terminals, the second this one. |
 | `shell     not active: this shell has not loaded direnv's hook` | This shell started before the hook was added. Open a new terminal, or run the command `info` prints. |
+| `.envrc    no dclaude block in …` or `exports a different path` | Run `dclaude login`; it writes the block again. |
 | `direnv    not installed` | Install direnv (see [Installation](#installation)). |
+| `direnv    not allowed yet` or `denied` | Run `direnv allow`. `init` approves the `.envrc` itself only when it holds nothing but the dclaude block. |
 | `direnv    … hides this profile` | Add `source_up` at the top of the `.envrc` that `info` names. |
 | `shared    not chosen yet` | Run `dclaude login`; it asks once. |
 | `shared    … newer entries not linked yet` | Run `dclaude login`; it links them. |
 | `account   not logged in` | Run `dclaude login`. |
 | `account   not checked: the directory moved` | Run `dclaude login` in the new location. |
+| `usage     token expired` | Run `claude` here once; it refreshes the token. |
 
 ## Development
 
 ```bash
+git clone https://github.com/powerumc/dclaude-config.git
+cd dclaude-config
 go test ./...
 go vet ./...
-go build -ldflags "-X main.version=v0.1.0" -o bin/dclaude ./cmd/dclaude
+go build -o bin/dclaude ./cmd/dclaude
 go build -o bin/dclaude-code ./cmd/dclaude-code
 ```
+
+A build from a clone takes its version from git, so `dclaude version` shows something like `0.1.1-0.20261016065125-1acbeda08d48+dirty`. Release builds set it with `-ldflags "-X main.version=0.1.0"`.
 
 The tests use fake `claude` and `direnv` executables and an in-memory Keychain, so they never touch your accounts.
 
@@ -349,6 +360,23 @@ internal/keychain/  Claude Code's Keychain item names and their removal
 internal/direnv/    direnv allow, status and the shell hook
 internal/usage/     the usage endpoint and its display
 ```
+
+### Releasing
+
+Pushing a `v*` tag starts the [release workflow](.github/workflows/release.yml):
+
+```bash
+git tag -a v0.2.0 -m v0.2.0
+git push origin v0.2.0
+```
+
+1. It runs `go vet` and `go test`.
+2. GoReleaser builds both commands for macOS and Linux (amd64, arm64) and publishes them on the releases page.
+3. It points the formula in [powerumc/homebrew-tap](https://github.com/powerumc/homebrew-tap) at the new tag.
+
+- A tag with a `-`, such as `v0.2.0-rc.1`, becomes a prerelease and leaves the formula alone.
+- Step 3 needs the `HOMEBREW_TAP_TOKEN` repository secret, a token that can write to `powerumc/homebrew-tap`. It expires a year after it was made. When it has expired, only that step fails: renew the token, update the secret and re-run the failed job.
+- `goreleaser release --snapshot --clean` builds the same archives locally into `dist/`, without publishing them.
 
 ## Roadmap
 

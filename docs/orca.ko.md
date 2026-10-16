@@ -12,8 +12,10 @@ Orca 1.4.225, Claude Code 2.1.301(macOS)에서 확인했습니다.
 1. `dclaude-code` 실행 파일의 전체 경로를 확인합니다.
 
    ```bash
-   command -v dclaude-code    # 예: /Users/you/go/bin/dclaude-code
+   command -v dclaude-code    # 예: /opt/homebrew/bin/dclaude-code
    ```
+
+   Homebrew로 설치했다면 이 경로를 쓰세요. `Cellar/dclaude/<버전>/` 아래 경로는 업그레이드할 때마다 바뀝니다.
 
 2. Orca **설정 → 에이전트 → Claude**에서 명령 재정의를 펼치고, **명령** 칸의 `claude`를 위 경로로 바꿉니다.
 

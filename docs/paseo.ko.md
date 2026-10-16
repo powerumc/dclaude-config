@@ -14,8 +14,10 @@ Paseo 앱에는 이 설정 화면이 없어서 `~/.paseo/config.json`을 직접 
 1. `dclaude-code` 실행 파일의 전체 경로를 확인합니다.
 
    ```bash
-   command -v dclaude-code    # 예: /Users/you/go/bin/dclaude-code
+   command -v dclaude-code    # 예: /opt/homebrew/bin/dclaude-code
    ```
+
+   Homebrew로 설치했다면 이 경로를 쓰세요. `Cellar/dclaude/<버전>/` 아래 경로는 업그레이드할 때마다 바뀝니다.
 
 2. `~/.paseo/config.json`에서 아래 두 `command` 값을 위 경로로 바꿉니다. 다른 값은 그대로 둡니다.
 
@@ -23,12 +25,12 @@ Paseo 앱에는 이 설정 화면이 없어서 `~/.paseo/config.json`을 직접 
    {
      "agents": {
        "providers": {
-         "claude": { "command": ["/Users/you/go/bin/dclaude-code"] }
+         "claude": { "command": ["/opt/homebrew/bin/dclaude-code"] }
        }
      },
      "daemon": {
        "terminalProfiles": [
-         { "id": "claude", "name": "Claude Code", "command": "/Users/you/go/bin/dclaude-code", "args": ["{{{prompt}}}"], "icon": "claude" }
+         { "id": "claude", "name": "Claude Code", "command": "/opt/homebrew/bin/dclaude-code", "args": ["{{{prompt}}}"], "icon": "claude" }
        ]
      }
    }

@@ -12,8 +12,10 @@ Checked with Orca 1.4.225 and Claude Code 2.1.301 on macOS.
 1. Find the full path of the `dclaude-code` executable.
 
    ```bash
-   command -v dclaude-code    # e.g. /Users/you/go/bin/dclaude-code
+   command -v dclaude-code    # e.g. /opt/homebrew/bin/dclaude-code
    ```
+
+   With Homebrew, use this path, not the one under `Cellar/dclaude/<version>/`, which changes on every upgrade.
 
 2. In Orca, open **Settings → Agents → Claude**, expand the command override, and replace `claude` in **Command** with that path.
 
