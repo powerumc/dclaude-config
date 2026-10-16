@@ -66,6 +66,14 @@
 
 3. dclaude를 설치합니다. Orca처럼 셸 없이 `claude`를 실행하는 앱에서 쓰려면 `dclaude-code`도 함께 설치합니다.
 
+   Homebrew로 설치하면 두 명령이 함께 설치되고, direnv가 없으면 direnv도 설치됩니다.
+
+   ```bash
+   brew install powerumc/tap/dclaude
+   ```
+
+   macOS와 Linux(amd64, arm64)용 바이너리는 [릴리스 페이지](https://github.com/powerumc/dclaude-config/releases)에 있습니다. Go로 설치하려면 이렇게 합니다.
+
    ```bash
    go install github.com/powerumc/dclaude-config/cmd/dclaude@latest
    go install github.com/powerumc/dclaude-config/cmd/dclaude-code@latest

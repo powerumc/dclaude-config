@@ -66,6 +66,14 @@ Per-directory Claude Code accounts. Run `dclaude init` in a directory, and Claud
 
 3. Install dclaude, and `dclaude-code` for apps that start `claude` without a shell, such as Orca.
 
+   With Homebrew, which installs both commands, and direnv if it is missing:
+
+   ```bash
+   brew install powerumc/tap/dclaude
+   ```
+
+   Prebuilt binaries for macOS and Linux (amd64, arm64) are on the [releases page](https://github.com/powerumc/dclaude-config/releases). With Go:
+
    ```bash
    go install github.com/powerumc/dclaude-config/cmd/dclaude@latest
    go install github.com/powerumc/dclaude-config/cmd/dclaude-code@latest
