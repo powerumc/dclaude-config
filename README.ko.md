@@ -375,7 +375,7 @@ git push origin v0.2.0
 3. [powerumc/homebrew-tap](https://github.com/powerumc/homebrew-tap)의 formula를 새 태그로 바꿉니다.
 
 - `v0.2.0-rc.1`처럼 `-`가 들어간 태그는 prerelease가 되고, formula는 바꾸지 않습니다.
-- 3단계에는 `powerumc/homebrew-tap`에 쓸 수 있는 토큰을 담은 `HOMEBREW_TAP_TOKEN` 저장소 secret이 필요합니다. 이 토큰은 만든 지 1년 뒤 만료됩니다. 만료되면 이 단계만 실패하니, 토큰을 다시 발급해 secret을 바꾸고 실패한 job을 다시 실행하세요.
+- 3단계에는 `powerumc/homebrew-tap`에 push할 수 있는 토큰을 담은 `HOMEBREW_TAP_TOKEN` 저장소 secret이 필요합니다. 토큰이 폐기되거나 만료되면 이 단계만 실패합니다. `gh secret set HOMEBREW_TAP_TOKEN -R powerumc/dclaude-config`를 실행하면 토큰을 묻는 프롬프트가 뜨니, 새 토큰을 넣고 실패한 job을 다시 실행하세요.
 - `goreleaser release --snapshot --clean`을 실행하면 같은 압축 파일을 올리지 않고 `dist/`에만 만듭니다.
 
 ## 로드맵

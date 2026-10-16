@@ -375,7 +375,7 @@ git push origin v0.2.0
 3. It points the formula in [powerumc/homebrew-tap](https://github.com/powerumc/homebrew-tap) at the new tag.
 
 - A tag with a `-`, such as `v0.2.0-rc.1`, becomes a prerelease and leaves the formula alone.
-- Step 3 needs the `HOMEBREW_TAP_TOKEN` repository secret, a token that can write to `powerumc/homebrew-tap`. It expires a year after it was made. When it has expired, only that step fails: renew the token, update the secret and re-run the failed job.
+- Step 3 needs the `HOMEBREW_TAP_TOKEN` repository secret, a token that can push to `powerumc/homebrew-tap`. If the token is revoked or expires, only that step fails. Set a new one with `gh secret set HOMEBREW_TAP_TOKEN -R powerumc/dclaude-config`, which prompts for it, then re-run the failed job.
 - `goreleaser release --snapshot --clean` builds the same archives locally into `dist/`, without publishing them.
 
 ## Roadmap
