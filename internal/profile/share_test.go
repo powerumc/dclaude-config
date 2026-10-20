@@ -70,7 +70,7 @@ func TestShareLinksAndMovesOwnCopiesAside(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r, err := p.Share(global, time.Date(2026, 10, 16, 8, 40, 0, 0, time.UTC))
+	r, err := p.Share(global, time.Date(2026, 10, 16, 8, 40, 0, 0, time.UTC), nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -4,8 +4,8 @@
 
 Per-directory Claude Code accounts. Run `dclaude init` in a directory, and Claude Code sessions started in that directory tree use that directory's login.
 
-- **Separate:** the login, account state and conversation history
-- **Shared:** your global settings, `CLAUDE.md`, plugins, skills and hooks
+- **Separate:** the login and account state
+- **Shared:** your global settings, `CLAUDE.md`, plugins, skills and hooks, and by default the conversation history
 - **Everywhere else:** your global account, as before
 
 > **Status:** prototype. Commands and on-disk formats may change.
@@ -34,7 +34,7 @@ Per-directory Claude Code accounts. Run `dclaude init` in a directory, and Claud
 ## Features
 
 - **Directory-scoped login.** The nearest `.claude_config` at or above the current directory decides the account.
-- **Your setup, another account.** A profile links `~/.claude`, so settings, `CLAUDE.md`, plugins, skills and hooks stay the same.
+- **Your setup, another account.** A profile links `~/.claude`, so settings, `CLAUDE.md`, plugins, skills, hooks and, by default, the conversation history stay the same.
 - **No token copying.** Each profile logs in with `claude auth login`. dclaude never writes or refreshes credentials.
 - **Worktrees without a new login.** `dclaude ln` points a git worktree, or any other directory, at an existing profile.
 - **Agent apps too.** `dclaude-code` stands in for `claude` in apps that start it without a shell. See the [apps checked so far](#agent-apps).
@@ -92,7 +92,7 @@ Per-directory Claude Code accounts. Run `dclaude init` in a directory, and Claud
 
 ```bash
 cd ~/workspace/hello-project
-dclaude init      # creates the profile, offers to share ~/.claude, then logs in
+dclaude init      # creates the profile, offers to share ~/.claude and the history, then logs in
 claude            # runs as the hello-project account
 dclaude info      # shows the account and usage here
 ```
@@ -101,7 +101,7 @@ dclaude info      # shows the account and usage here
 
 ```text
 profile   /Users/you/workspace/hello-project/.claude_config
-shared    ~/.claude: everything but the login, account state and conversation history
+shared    ~/.claude: everything but the login and account state
 .envrc    /Users/you/workspace/hello-project/.envrc
 direnv    allowed
 shell     active
@@ -141,13 +141,13 @@ Output is colored on a terminal. Set `NO_COLOR=1` to turn colors off, or `CLICOL
 ### dclaude init
 
 ```text
-dclaude init [--isolated | --share-history] [login options]
+dclaude init [--isolated | --share-history | --no-share-history] [login options]
 ```
 
 Creates a profile in the current directory and logs in.
 
 1. Creates `.claude_config` and the dclaude block in `.envrc`.
-2. Asks whether to share `~/.claude` (default: yes).
+2. Asks whether to share `~/.claude`, then whether to share the conversation history too, after telling what that costs. Both default to yes.
 3. Runs `direnv allow` if the `.envrc` holds nothing else.
 4. Runs `claude auth login`.
 5. Says what is still needed: approving the `.envrc`, or direnv's shell hook, which it offers to add.
@@ -156,6 +156,7 @@ Creates a profile in the current directory and logs in.
 | --- | --- |
 | `--isolated` | Shares nothing from `~/.claude`, without asking |
 | `--share-history` | Also shares the conversation history, without asking |
+| `--no-share-history` | Shares `~/.claude` but keeps the conversation history in the profile, without asking |
 | `--console`, `--sso`, `--email <address>` | Passed to `claude auth login` |
 
 ### dclaude login
@@ -167,7 +168,8 @@ dclaude login [login options]
 Logs in again with the current profile. Before that, it:
 
 - re-points the profile at the new path, if the directory was moved;
-- asks once whether to share `~/.claude`, for a profile made before sharing existed;
+- asks once whether to share `~/.claude`, for a profile that has not chosen yet: one made before sharing existed, or while `~/.claude` did not exist. The conversation history is offered only when the profile has none of its own;
+- asks before moving the profile's own conversation history aside for the one in `~/.claude` (default: no);
 - links entries added to `~/.claude` since, for a sharing profile.
 
 The login options are the same as for `init`.
@@ -193,7 +195,7 @@ dclaude deinit [-y] [--force]
 Logs out, then removes:
 
 - the profile's Keychain items;
-- the `.claude_config` directory and the conversation history in it (a shared `~/.claude` stays);
+- the `.claude_config` directory, with any conversation history kept in it (a history shared with `~/.claude` stays there, like the rest of `~/.claude`);
 - the dclaude block in `.envrc`;
 - the links `dclaude ln` made to this profile.
 
@@ -247,7 +249,7 @@ Running `dclaude init` in `~/workspace/hello-project` creates:
     ├── settings.json -> ~/.claude/settings.json
     ├── CLAUDE.md     -> ~/.claude/CLAUDE.md
     ├── plugins/      -> ~/.claude/plugins/      (and every other shared entry)
-    └── projects/        written by Claude Code: this profile's conversations
+    └── projects/     -> ~/.claude/projects/     the conversation history (if you declined: the profile's own)
 ```
 
 The block in `.envrc`:
@@ -279,10 +281,10 @@ With sharing on, each entry of `~/.claude` gets a symlink of the same name in th
 | --- | --- |
 | credentials, `.claude.json`, `policy-limits.json`, `remote-settings.json`, `mcp-needs-auth-cache.json` | they belong to the account |
 | `backups`, `sessions`, `session-env`, `state`, `bridge-spawn` | they belong to running sessions |
-| `projects/`, `history.jsonl`, `stats-cache.json` | they are the conversation history; `--share-history` links them too |
+| `projects/`, `history.jsonl`, `stats-cache.json` | they are the conversation history; linked too when you share it (the default at init, or `--share-history`) |
 
-- If the profile already has its own copy of an entry, dclaude moves it to `.claude_config/.dclaude-backup/` before linking.
-- `~/.claude` itself is never changed, and `deinit` removes only the links.
+- If the profile already has its own copy of an entry, dclaude moves it to `.claude_config/.dclaude-backup/` before linking. For its own `projects/` or `history.jsonl` it asks first (default: no); answering no keeps them, unlinked, and the next `dclaude login` asks again.
+- A profile that shares the conversation history gets an empty `~/.claude/projects/` and `~/.claude/history.jsonl` where they are missing, as Claude Code itself would create them, so the profile never starts a history of its own. Apart from that, `~/.claude` is never changed, and `deinit` removes only the links.
 
 ### Links made by dclaude ln
 
@@ -294,7 +296,7 @@ With sharing on, each entry of `~/.claude` gets a symlink of the same name in th
 
 ### Sharing
 
-- **Conversation history is per profile by default.** When `projects/` is a symlink, Claude Code asks before every auto memory read or write, and allow rules cannot approve it ([anthropics/claude-code#98044](https://github.com/anthropics/claude-code/issues/98044)). `--share-history` shares it anyway, with those prompts.
+- **A shared conversation history brings prompts.** When `projects/` is a symlink, Claude Code asks before every auto memory read or write, and allow rules cannot approve it ([anthropics/claude-code#98044](https://github.com/anthropics/claude-code/issues/98044)). `init` says so before asking; answer no, or pass `--no-share-history`, to keep the history per profile.
 - **Account-scoped settings are not shared.** MCP servers added with `claude mcp add --scope user`, and per-project approvals, live in the profile's `.claude.json`.
 - **The sharing choice is fixed after init.** Changing it is on the [roadmap](#roadmap).
 - **An isolated profile still sees `~/.claude/CLAUDE.md`.** Claude Code reads `CLAUDE.md` in every directory above the current one, so it finds this file as a project file and asks once per project whether to allow its `@` imports. A sharing profile reads it once, as your user file.
@@ -329,6 +331,7 @@ With sharing on, each entry of `~/.claude` gets a symlink of the same name in th
 | `direnv    … hides this profile` | Add `source_up` at the top of the `.envrc` that `info` names. |
 | `shared    not chosen yet` | Run `dclaude login`; it asks once. |
 | `shared    … newer entries not linked yet` | Run `dclaude login`; it links them. |
+| `shared    … keeps its own projects` | Run `dclaude login`; it asks whether to move them aside. Moved entries stay in `.claude_config/.dclaude-backup/`. |
 | `account   not logged in` | Run `dclaude login`. |
 | `account   not checked: the directory moved` | Run `dclaude login` in the new location. |
 | `usage     token expired` | Run `claude` here once; it refreshes the token. |
@@ -381,7 +384,6 @@ git push origin v0.2.0
 ## Roadmap
 
 - `dclaude share` and `dclaude unshare`: change a profile's sharing after init.
-- Share the conversation history by default once [anthropics/claude-code#98044](https://github.com/anthropics/claude-code/issues/98044) is fixed.
 - `dclaude info --json` for status lines and scripts.
 
 ## Related projects

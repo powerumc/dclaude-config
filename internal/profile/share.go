@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -42,6 +43,45 @@ var own = []string{
 // Code asks before every auto memory read or write through a symlinked
 // projects/ (anthropics/claude-code#98044).
 var history = []string{"projects", "history.jsonl", "stats-cache.json"}
+
+// conversations is the part of the history a profile must not lose: the
+// sessions with their auto memory, and the prompt history. Claude Code rebuilds
+// stats-cache.json.
+var conversations = []string{"projects", "history.jsonl"}
+
+// IsConversation reports whether name holds conversations or prompt history.
+func IsConversation(name string) bool { return matches(name, conversations) }
+
+// OwnHistory lists the conversations the profile keeps itself rather than
+// links: linking ~/.claude's would move them aside.
+func (p *Profile) OwnHistory() ([]string, error) {
+	var own []string
+	for _, n := range conversations {
+		info, err := os.Lstat(filepath.Join(p.Dir(), n))
+		switch {
+		case errors.Is(err, fs.ErrNotExist):
+		case err != nil:
+			return nil, err
+		case info.Mode()&fs.ModeSymlink == 0:
+			own = append(own, n)
+		}
+	}
+	return own, nil
+}
+
+// EnsureHistory creates an empty projects/ and history.jsonl in global where
+// they are missing, as Claude Code itself would, so that a profile sharing the
+// history links them from the start instead of writing a history of its own.
+func EnsureHistory(global string) error {
+	if err := os.MkdirAll(filepath.Join(global, "projects"), 0o755); err != nil {
+		return err
+	}
+	f, err := os.OpenFile(filepath.Join(global, "history.jsonl"), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0o600)
+	if err != nil {
+		return err
+	}
+	return f.Close()
+}
 
 func matches(name string, list []string) bool {
 	for _, n := range list {
@@ -105,13 +145,16 @@ type ShareResult struct {
 	Backup string
 }
 
-// Share links every pending entry to the same name in global. The profile's
-// own copy of an entry is moved to a backup directory, never deleted.
-func (p *Profile) Share(global string, now time.Time) (ShareResult, error) {
+// Share links every pending entry to the same name in global, except those in
+// skip. The profile's own copy of an entry is moved to a backup directory,
+// never deleted.
+func (p *Profile) Share(global string, now time.Time, skip []string) (ShareResult, error) {
 	link, ownCopy, err := p.Pending(global)
 	if err != nil {
 		return ShareResult{}, err
 	}
+	link = slices.DeleteFunc(link, func(n string) bool { return slices.Contains(skip, n) })
+	ownCopy = slices.DeleteFunc(ownCopy, func(n string) bool { return slices.Contains(skip, n) })
 	r := ShareResult{}
 	if len(ownCopy) > 0 {
 		r.Backup = filepath.Join(p.Dir(), BackupDirName, now.Format("20060102-150405"))

@@ -69,7 +69,9 @@ Usage:
   dclaude info                    show the account, usage and activation state for this directory
 
 Share options: --isolated (share nothing from ~/.claude), --share-history (share the
-conversation history too). Without one, init asks whether to share ~/.claude.
+conversation history too), --no-share-history (share ~/.claude but not the conversation
+history). Without one, init asks whether to share ~/.claude, then the conversation
+history; both default to yes.
 Login options are passed to "claude auth login": --console, --sso, --email <address>
 
 For apps that start claude without a shell, use the separate dclaude-code command in

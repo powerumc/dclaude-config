@@ -4,8 +4,8 @@
 
 디렉토리별로 Claude Code 계정을 따로 쓰게 해 주는 도구입니다. 어떤 디렉토리에서 `dclaude init`을 실행하면, 그 디렉토리와 하위에서 시작한 Claude Code 세션은 그 디렉토리 전용 로그인을 씁니다.
 
-- **따로 쓰는 것:** 로그인, 계정 상태, 대화 기록
-- **함께 쓰는 것:** 전역 설정, `CLAUDE.md`, 플러그인, 스킬, hooks
+- **따로 쓰는 것:** 로그인, 계정 상태
+- **함께 쓰는 것:** 전역 설정, `CLAUDE.md`, 플러그인, 스킬, hooks, 그리고 기본값으로 대화 기록
 - **그 밖의 곳:** 지금처럼 전역 계정
 
 > **상태:** 프로토타입입니다. 명령과 파일 형식이 바뀔 수 있습니다.
@@ -34,7 +34,7 @@
 ## 기능
 
 - **디렉토리 단위 로그인.** 현재 디렉토리나 그 위에서 가장 가까운 `.claude_config`가 계정을 정합니다.
-- **설정은 그대로, 계정만 따로.** 프로필이 `~/.claude`를 링크하므로 설정, `CLAUDE.md`, 플러그인, 스킬, hooks가 같습니다.
+- **설정은 그대로, 계정만 따로.** 프로필이 `~/.claude`를 링크하므로 설정, `CLAUDE.md`, 플러그인, 스킬, hooks가 같고, 기본값으로 대화 기록도 같습니다.
 - **토큰을 복사하지 않습니다.** 프로필마다 `claude auth login`으로 로그인합니다. dclaude는 인증 정보를 쓰거나 갱신하지 않습니다.
 - **워크트리는 다시 로그인하지 않습니다.** `dclaude ln`으로 git 워크트리나 다른 디렉토리를 기존 프로필에 연결합니다.
 - **에이전트 앱에서도 됩니다.** 셸 없이 `claude`를 실행하는 앱에서는 `dclaude-code`를 대신 쓰면 됩니다. [지금까지 확인한 앱](#에이전트-앱)을 참고하세요.
@@ -92,7 +92,7 @@
 
 ```bash
 cd ~/workspace/hello-project
-dclaude init      # 프로필을 만들고 ~/.claude 공유 여부를 물은 뒤 로그인합니다
+dclaude init      # 프로필을 만들고 ~/.claude와 대화 기록 공유 여부를 물은 뒤 로그인합니다
 claude            # hello-project 계정으로 실행됩니다
 dclaude info      # 이 디렉토리의 계정과 사용량을 보여 줍니다
 ```
@@ -101,7 +101,7 @@ dclaude info      # 이 디렉토리의 계정과 사용량을 보여 줍니다
 
 ```text
 profile   /Users/you/workspace/hello-project/.claude_config
-shared    ~/.claude: everything but the login, account state and conversation history
+shared    ~/.claude: everything but the login and account state
 .envrc    /Users/you/workspace/hello-project/.envrc
 direnv    allowed
 shell     active
@@ -141,13 +141,13 @@ dclaude ln        # 다시 로그인하지 않고 hello-project 프로필을 씁
 ### dclaude init
 
 ```text
-dclaude init [--isolated | --share-history] [로그인 옵션]
+dclaude init [--isolated | --share-history | --no-share-history] [로그인 옵션]
 ```
 
 현재 디렉토리에 프로필을 만들고 로그인합니다.
 
 1. `.claude_config`와 `.envrc`의 dclaude 구간을 만듭니다.
-2. `~/.claude`를 공유할지 묻습니다. 기본값은 공유입니다.
+2. `~/.claude`를 공유할지 묻습니다. 공유한다면 대화 기록까지 공유할 때 생기는 확인 창을 알린 뒤, 대화 기록도 공유할지 묻습니다. 둘 다 기본값은 공유입니다.
 3. `.envrc`에 다른 내용이 없으면 `direnv allow`를 실행합니다.
 4. `claude auth login`을 실행합니다.
 5. `.envrc` 승인이나 셸 hook처럼 아직 필요한 일을 알려 줍니다. hook은 대신 추가할지 묻습니다.
@@ -156,6 +156,7 @@ dclaude init [--isolated | --share-history] [로그인 옵션]
 | --- | --- |
 | `--isolated` | 묻지 않고, `~/.claude`를 공유하지 않습니다 |
 | `--share-history` | 묻지 않고, 대화 기록까지 공유합니다 |
+| `--no-share-history` | 묻지 않고, `~/.claude`는 공유하되 대화 기록은 프로필에 따로 둡니다 |
 | `--console`, `--sso`, `--email <주소>` | `claude auth login`에 그대로 넘깁니다 |
 
 ### dclaude login
@@ -167,7 +168,8 @@ dclaude login [로그인 옵션]
 현재 프로필로 다시 로그인합니다. 그 전에 다음을 먼저 처리합니다.
 
 - 디렉토리를 옮겼다면 프로필 경로를 새 위치로 고칩니다.
-- 공유 기능이 생기기 전에 만든 프로필이면 `~/.claude`를 공유할지 한 번 묻습니다.
+- 공유 방식을 아직 정하지 않은 프로필이면 `~/.claude`를 공유할지 한 번 묻습니다. 공유 기능이 생기기 전이나 `~/.claude`가 없을 때 만든 프로필이 여기에 해당합니다. 대화 기록은 프로필에 자기 기록이 없을 때만 묻습니다.
+- 프로필에 자기 대화 기록이 있으면, `~/.claude`의 기록을 쓰려고 옮기기 전에 묻습니다. 기본값은 옮기지 않는 것입니다.
 - 공유 중인 프로필이면 그사이 `~/.claude`에 새로 생긴 항목을 링크합니다.
 
 로그인 옵션은 `init`과 같습니다.
@@ -193,7 +195,7 @@ dclaude deinit [-y] [--force]
 로그아웃한 뒤 다음을 지웁니다.
 
 - 프로필의 Keychain 항목
-- `.claude_config` 디렉토리와 그 안의 대화 기록 (공유된 `~/.claude`는 그대로 둡니다)
+- `.claude_config` 디렉토리와 그 안에 따로 둔 대화 기록 (`~/.claude`와 공유한 대화 기록은 다른 공유 항목처럼 그대로 둡니다)
 - `.envrc`의 dclaude 구간
 - `dclaude ln`으로 이 프로필에 연결한 링크
 
@@ -247,7 +249,7 @@ macOS에서 Claude Code 2.1.301로 확인했습니다. Claude Desktop 앱은 프
     ├── settings.json -> ~/.claude/settings.json
     ├── CLAUDE.md     -> ~/.claude/CLAUDE.md
     ├── plugins/      -> ~/.claude/plugins/      (공유하는 다른 항목도 같은 방식)
-    └── projects/        Claude Code가 만드는 이 프로필의 대화 기록
+    └── projects/     -> ~/.claude/projects/     대화 기록 (공유하지 않기로 했으면 이 프로필 전용)
 ```
 
 `.envrc`에 들어가는 구간:
@@ -279,10 +281,10 @@ fi
 | --- | --- |
 | 인증 정보, `.claude.json`, `policy-limits.json`, `remote-settings.json`, `mcp-needs-auth-cache.json` | 계정에 딸린 것 |
 | `backups`, `sessions`, `session-env`, `state`, `bridge-spawn` | 실행 중인 세션에 딸린 것 |
-| `projects/`, `history.jsonl`, `stats-cache.json` | 대화 기록. `--share-history`를 주면 이것도 링크합니다 |
+| `projects/`, `history.jsonl`, `stats-cache.json` | 대화 기록. 대화 기록을 공유하면(init의 기본값, 또는 `--share-history`) 이것도 링크합니다 |
 
-- 프로필에 같은 이름의 항목이 이미 있으면 링크하기 전에 `.claude_config/.dclaude-backup/`으로 옮깁니다.
-- `~/.claude` 자체는 바꾸지 않습니다. `deinit`도 링크만 지웁니다.
+- 프로필에 같은 이름의 항목이 이미 있으면 링크하기 전에 `.claude_config/.dclaude-backup/`으로 옮깁니다. 다만 프로필 자신의 `projects/`나 `history.jsonl`은 먼저 묻습니다(기본값은 옮기지 않음). 옮기지 않으면 링크하지 않고 그대로 두며, 다음 `dclaude login` 때 다시 묻습니다.
+- 대화 기록을 공유하는 프로필이면 `~/.claude`에 `projects/`와 `history.jsonl`이 없을 때 빈 것으로 만듭니다. Claude Code가 직접 만드는 것과 같은 모양이며, 프로필이 처음부터 자기 기록을 따로 쌓지 않게 하려는 것입니다. 그 밖에는 `~/.claude`를 바꾸지 않습니다. `deinit`도 링크만 지웁니다.
 
 ### dclaude ln이 만드는 링크
 
@@ -294,7 +296,7 @@ fi
 
 ### 공유
 
-- **대화 기록은 기본적으로 프로필마다 따로입니다.** `projects/`가 심볼릭 링크이면 Claude Code가 auto memory를 읽고 쓸 때마다 확인을 받고, 허용 규칙으로도 넘길 수 없습니다([anthropics/claude-code#98044](https://github.com/anthropics/claude-code/issues/98044)). `--share-history`를 주면 이 확인 창을 감수하고 함께 씁니다.
+- **대화 기록을 공유하면 확인 창이 뜹니다.** `projects/`가 심볼릭 링크이면 Claude Code가 auto memory를 읽고 쓸 때마다 확인을 받고, 허용 규칙으로도 넘길 수 없습니다([anthropics/claude-code#98044](https://github.com/anthropics/claude-code/issues/98044)). `init`은 이 내용을 알린 뒤 묻습니다. 아니요로 답하거나 `--no-share-history`를 주면 대화 기록은 프로필마다 따로 둡니다.
 - **계정에 딸린 설정은 공유되지 않습니다.** `claude mcp add --scope user`로 추가한 MCP 서버와 프로젝트별 승인 내역은 프로필의 `.claude.json`에 저장됩니다.
 - **공유 방식은 init 뒤에 바꿀 수 없습니다.** 나중에 바꾸는 기능은 [로드맵](#로드맵)에 있습니다.
 - **분리한 프로필에서도 `~/.claude/CLAUDE.md`는 보입니다.** Claude Code는 현재 디렉토리부터 위쪽 모든 디렉토리의 `CLAUDE.md`를 읽습니다. 그래서 이 파일을 프로젝트 파일로 읽고, `@`로 가져오는 파일을 허용할지 프로젝트마다 한 번 묻습니다. 공유 중인 프로필은 이 파일을 사용자 파일로 한 번만 읽습니다.
@@ -329,6 +331,7 @@ fi
 | `direnv    … hides this profile` | `info`가 가리키는 `.envrc` 맨 위에 `source_up`을 추가하세요. |
 | `shared    not chosen yet` | `dclaude login`을 실행하세요. 한 번 묻습니다. |
 | `shared    … newer entries not linked yet` | `dclaude login`을 실행하면 링크합니다. |
+| `shared    … keeps its own projects` | `dclaude login`을 실행하면 옮길지 묻습니다. 옮긴 항목은 `.claude_config/.dclaude-backup/`에 남습니다. |
 | `account   not logged in` | `dclaude login`을 실행하세요. |
 | `account   not checked: the directory moved` | 새 위치에서 `dclaude login`을 실행하세요. |
 | `usage     token expired` | 이 디렉토리에서 `claude`를 한 번 실행하면 토큰을 갱신합니다. |
@@ -381,7 +384,6 @@ git push origin v0.2.0
 ## 로드맵
 
 - `dclaude share`, `dclaude unshare`: init 뒤에 프로필의 공유 방식 바꾸기
-- [anthropics/claude-code#98044](https://github.com/anthropics/claude-code/issues/98044)가 고쳐지면 대화 기록도 기본으로 공유
 - 상태 표시줄과 스크립트용 `dclaude info --json`
 
 ## 관련 프로젝트
