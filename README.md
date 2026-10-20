@@ -123,6 +123,8 @@ dclaude ln        # uses the hello-project profile, without a new login
 
 - `dclaude ln <dir>` names the profile to use.
 - A worktree inside the project, such as Claude Code's `.claude/worktrees/<name>`, already uses the project's profile.
+- Claude Code keeps conversations per directory. `/resume` lists this worktree's conversations, and Ctrl+W shows those of every worktree of the repository. `claude --resume <id>` opens any of them.
+- Auto memory stays with the main checkout, so every worktree shares it.
 
 ## Commands
 

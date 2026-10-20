@@ -123,6 +123,8 @@ dclaude ln        # 다시 로그인하지 않고 hello-project 프로필을 씁
 
 - `dclaude ln <디렉토리>`로 쓸 프로필을 직접 지정할 수 있습니다.
 - Claude Code의 `.claude/worktrees/<이름>`처럼 프로젝트 안에 만든 워크트리는 이미 프로젝트의 프로필을 씁니다.
+- Claude Code는 대화를 디렉토리별로 저장합니다. `/resume`은 지금 워크트리의 대화를 보여 주고, Ctrl+W를 누르면 같은 저장소의 모든 워크트리 대화를 보여 줍니다. `claude --resume <id>`로는 어느 대화든 열 수 있습니다.
+- auto memory는 원래 체크아웃에 저장되므로 모든 워크트리가 함께 씁니다.
 
 ## 명령
 
